@@ -508,9 +508,10 @@ def test_existing_events_have_news_field():
         return False
 
 def run_all_tests():
-    """Run all backend tests"""
-    print("🚀 Starting Nexus Crisis Intelligence Backend API Tests")
-    print("=" * 60)
+    """Run all backend tests including NewsAPI integration"""
+    print("🚀 Starting Enhanced Nexus Crisis Intelligence Backend API Tests")
+    print("🔥 Testing NewsAPI Integration & Enhanced Features")
+    print("=" * 70)
     
     results = {}
     
@@ -535,22 +536,51 @@ def run_all_tests():
     # Test 7: Individual Event Retrieval
     results['event_retrieval'] = test_event_retrieval(created_event_id)
     
+    # NEW TESTS FOR NEWSAPI INTEGRATION
+    
+    # Test 8: Crisis News API
+    results['crisis_news_api'] = test_crisis_news_api()
+    
+    # Test 9: Trending Topics API
+    results['trending_topics_api'] = test_trending_topics_api()
+    
+    # Test 10: Enhanced Event Creation with News
+    results['enhanced_event_creation'], enhanced_event_id = test_enhanced_event_creation_with_news()
+    
+    # Test 11: Existing Events Have News Field
+    results['existing_events_news_field'] = test_existing_events_have_news_field()
+    
     # Summary
-    print("\n" + "=" * 60)
-    print("🏁 TEST SUMMARY")
-    print("=" * 60)
+    print("\n" + "=" * 70)
+    print("🏁 ENHANCED TEST SUMMARY - NewsAPI Integration")
+    print("=" * 70)
     
     passed = sum(1 for result in results.values() if result)
     total = len(results)
     
-    for test_name, result in results.items():
-        status = "✅ PASS" if result else "❌ FAIL"
-        print(f"{test_name.replace('_', ' ').title()}: {status}")
+    # Group tests by category
+    core_tests = ['basic_connection', 'events_api_empty', 'sample_data_creation', 
+                  'events_with_ai', 'event_creation', 'standalone_analysis', 'event_retrieval']
+    news_tests = ['crisis_news_api', 'trending_topics_api', 'enhanced_event_creation', 
+                  'existing_events_news_field']
     
-    print(f"\nOverall: {passed}/{total} tests passed")
+    print("📊 CORE API TESTS:")
+    for test_name in core_tests:
+        if test_name in results:
+            status = "✅ PASS" if results[test_name] else "❌ FAIL"
+            print(f"  {test_name.replace('_', ' ').title()}: {status}")
+    
+    print("\n🔥 NEWSAPI INTEGRATION TESTS:")
+    for test_name in news_tests:
+        if test_name in results:
+            status = "✅ PASS" if results[test_name] else "❌ FAIL"
+            print(f"  {test_name.replace('_', ' ').title()}: {status}")
+    
+    print(f"\n📈 Overall: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All backend tests passed! AI integration is working properly.")
+        print("🎉 All backend tests passed! NewsAPI integration is working properly.")
+        print("🚀 Enhanced Nexus Crisis Intelligence platform is ready!")
         return True
     else:
         print("⚠️ Some tests failed. Check the details above.")
