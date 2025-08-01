@@ -208,7 +208,6 @@ metadata:
 test_plan:
   current_focus:
     - "Interactive India Geo-Map with Leaflet"
-    - "OpenAI integration for AI-powered information processing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
