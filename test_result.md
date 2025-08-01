@@ -234,7 +234,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Interactive India Geo-Map with Leaflet"
+    - "NewsAPI integration for real-time crisis news"
+    - "Enhanced event creation with news context"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
