@@ -101,7 +101,6 @@ async def fetch_crisis_news(query: str, days_back: int = 7, page_size: int = 10)
         
         params = {
             'q': query,
-            'country': 'in',  # India
             'language': 'en',
             'sortBy': 'publishedAt',
             'from': from_date.strftime('%Y-%m-%d'),
