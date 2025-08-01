@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
+import NewsPanel from './NewsPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -82,6 +83,33 @@ const getSeverityColor = (severity) => {
   return colors[severity] || colors.medium;
 };
 
+const NewsArticlesList = ({ articles }) => {
+  if (!articles || articles.length === 0) return null;
+  
+  return (
+    <div className="mt-3 border-t pt-3">
+      <h5 className="font-medium text-sm text-gray-700 mb-2">📰 Related News</h5>
+      <div className="space-y-2 max-h-32 overflow-y-auto">
+        {articles.slice(0, 3).map((article, index) => (
+          <div key={index} className="text-xs">
+            <a 
+              href={article.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 font-medium line-clamp-2"
+            >
+              {article.title}
+            </a>
+            <div className="text-gray-500 mt-1">
+              {article.source?.name || article.source} • {new Date(article.publishedAt || article.published_at).toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const EventPopup = ({ event }) => (
   <div className="w-80 p-2">
     <div className="flex items-center gap-2 mb-2">
@@ -100,7 +128,10 @@ const EventPopup = ({ event }) => (
       <p className="text-sm text-gray-700">{event.ai_summary}</p>
     </div>
     
-    <div className="text-xs text-gray-500 border-t pt-2">
+    {/* News Articles */}
+    <NewsArticlesList articles={event.news_articles} />
+    
+    <div className="text-xs text-gray-500 border-t pt-2 mt-3">
       <p>Type: {event.event_type.replace('_', ' ')}</p>
       <p>Time: {new Date(event.timestamp).toLocaleString()}</p>
       <p>Status: {event.status}</p>
@@ -114,6 +145,7 @@ export default function CrisisMap() {
   const [error, setError] = useState(null);
   const [selectedEventType, setSelectedEventType] = useState('all');
   const [selectedSeverity, setSelectedSeverity] = useState('all');
+  const [showNewsPanel, setShowNewsPanel] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -190,12 +222,22 @@ export default function CrisisMap() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Nexus Crisis Intelligence</h1>
-            <p className="text-gray-600">Real-time crisis monitoring for India</p>
+            <p className="text-gray-600">Real-time crisis monitoring for India with live news</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-sm">
               <span className="font-medium">{filteredEvents.length}</span> active events
             </div>
+            <button 
+              onClick={() => setShowNewsPanel(!showNewsPanel)}
+              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                showNewsPanel 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📰 News
+            </button>
             <button 
               onClick={fetchEvents}
               className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
@@ -317,6 +359,12 @@ export default function CrisisMap() {
           </div>
         </div>
       </div>
+
+      {/* News Panel */}
+      <NewsPanel 
+        isOpen={showNewsPanel} 
+        onClose={() => setShowNewsPanel(false)} 
+      />
     </div>
   );
 }

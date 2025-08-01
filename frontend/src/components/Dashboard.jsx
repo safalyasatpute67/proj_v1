@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import NewsPanel from './NewsPanel';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -45,6 +46,30 @@ const EventCard = ({ event }) => {
       
       <p className="text-gray-700 text-sm mb-4 leading-relaxed">{event.ai_summary}</p>
       
+      {/* News Articles Preview */}
+      {event.news_articles && event.news_articles.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <h5 className="text-xs font-medium text-gray-700 mb-2">📰 Related News ({event.news_articles.length})</h5>
+          <div className="text-xs text-gray-600">
+            {event.news_articles.slice(0, 2).map((article, index) => (
+              <div key={index} className="mb-1">
+                <a 
+                  href={article.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 line-clamp-1"
+                >
+                  {article.title}
+                </a>
+              </div>
+            ))}
+            {event.news_articles.length > 2 && (
+              <div className="text-gray-500">+{event.news_articles.length - 2} more articles</div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <div className="flex items-center justify-between text-xs text-gray-500">
         <span>Type: {event.event_type.replace('_', ' ')}</span>
         <span>{new Date(event.timestamp).toLocaleString()}</span>
@@ -84,7 +109,7 @@ const ReportEventForm = ({ onEventCreated }) => {
       });
       
       if (onEventCreated) onEventCreated();
-      alert('Event reported successfully! AI analysis completed.');
+      alert('Event reported successfully! AI analysis and news context added.');
     } catch (error) {
       console.error('Error reporting event:', error);
       alert('Failed to report event. Please try again.');
@@ -171,12 +196,19 @@ const ReportEventForm = ({ onEventCreated }) => {
           </div>
         </div>
         
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <p className="text-sm text-blue-800">
+            <span className="font-medium">🤖 AI Enhancement:</span> Your event will be automatically analyzed for type, severity, 
+            and enhanced with relevant news articles from NewsAPI.
+          </p>
+        </div>
+        
         <button
           type="submit"
           disabled={submitting}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
         >
-          {submitting ? 'Analyzing & Reporting...' : 'Report Event'}
+          {submitting ? 'Analyzing & Reporting...' : 'Report Event with AI + News'}
         </button>
       </form>
     </div>
@@ -187,6 +219,7 @@ export default function Dashboard() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showNewsPanel, setShowNewsPanel] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -218,8 +251,9 @@ export default function Dashboard() {
     const critical = events.filter(e => e.severity === 'critical').length;
     const high = events.filter(e => e.severity === 'high').length;
     const active = events.filter(e => e.status === 'active').length;
+    const withNews = events.filter(e => e.news_articles && e.news_articles.length > 0).length;
     
-    return { total, critical, high, active };
+    return { total, critical, high, active, withNews };
   };
 
   const stats = getStats();
@@ -243,9 +277,19 @@ export default function Dashboard() {
           <div className="flex items-center justify-between h-16">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Nexus Crisis Intelligence</h1>
-              <p className="text-sm text-gray-600">Community-centric digital ecosystem for India</p>
+              <p className="text-sm text-gray-600">Community-centric digital ecosystem with real-time news</p>
             </div>
             <div className="flex items-center gap-4">
+              <button
+                onClick={() => setShowNewsPanel(!showNewsPanel)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  showNewsPanel 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                📰 News Panel
+              </button>
               <button
                 onClick={fetchEvents}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium"
@@ -296,7 +340,7 @@ export default function Dashboard() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -360,6 +404,22 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="flex items-center justify-center w-8 h-8 bg-purple-500 rounded-md">
+                      <span className="text-white text-sm font-medium">📰</span>
+                    </div>
+                  </div>
+                  <div className="ml-5 w-0 flex-1">
+                    <dl>
+                      <dt className="text-sm font-medium text-gray-500 truncate">With News</dt>
+                      <dd className="text-lg font-medium text-gray-900">{stats.withNews}</dd>
+                    </dl>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Recent Events */}
@@ -375,7 +435,7 @@ export default function Dashboard() {
                       onClick={initializeSampleData}
                       className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
                     >
-                      Load Sample Data
+                      Load Sample Data with News
                     </button>
                   </div>
                 ) : (
@@ -404,7 +464,7 @@ export default function Dashboard() {
                       onClick={initializeSampleData}
                       className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
                     >
-                      Load Sample Data
+                      Load Sample Data with News
                     </button>
                   </div>
                 ) : (
@@ -425,6 +485,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* News Panel */}
+      <NewsPanel 
+        isOpen={showNewsPanel} 
+        onClose={() => setShowNewsPanel(false)} 
+      />
     </div>
   );
 }
