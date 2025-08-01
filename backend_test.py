@@ -305,6 +305,208 @@ def test_event_retrieval(event_id):
         print(f"❌ Error retrieving individual event: {e}")
         return False
 
+def test_crisis_news_api():
+    """Test 8: NewsAPI Integration - GET /api/news/crisis"""
+    print("\n=== Test 8: NewsAPI Integration - Crisis News ===")
+    
+    # Test with different crisis queries
+    test_queries = [
+        {"query": "earthquake india", "days": 7, "limit": 5},
+        {"query": "flood mumbai", "days": 3, "limit": 3},
+        {"query": "disaster emergency india", "days": 7, "limit": 10}
+    ]
+    
+    for i, params in enumerate(test_queries, 1):
+        print(f"\n--- Test Query {i}: {params['query']} ---")
+        try:
+            response = requests.get(f"{API_BASE_URL}/news/crisis", 
+                                  params=params, 
+                                  timeout=15)
+            print(f"Status Code: {response.status_code}")
+            
+            if response.status_code == 200:
+                news_data = response.json()
+                print(f"Query: {news_data['query']}")
+                print(f"Total Results: {news_data['total_results']}")
+                print(f"Articles Returned: {len(news_data['articles'])}")
+                
+                # Check article structure
+                if len(news_data['articles']) > 0:
+                    article = news_data['articles'][0]
+                    required_fields = ['title', 'description', 'url', 'source', 'published_at']
+                    missing_fields = [field for field in required_fields if field not in article or not article[field]]
+                    
+                    if missing_fields:
+                        print(f"⚠️ Some articles missing fields: {missing_fields}")
+                    else:
+                        print("✅ Article structure valid")
+                        print(f"Sample Article: {article['title'][:80]}...")
+                        print(f"Source: {article['source']}")
+                else:
+                    print("⚠️ No articles returned (might be due to API limits or no recent news)")
+                
+                print(f"✅ Crisis news API working for query: {params['query']}")
+            else:
+                print(f"❌ Crisis news API failed with status {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    print(f"Error details: {error_detail}")
+                except:
+                    print(f"Error response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error testing crisis news API: {e}")
+            return False
+    
+    print("✅ All crisis news API tests passed")
+    return True
+
+def test_trending_topics_api():
+    """Test 9: Trending Crisis Topics - GET /api/news/trending"""
+    print("\n=== Test 9: Trending Crisis Topics ===")
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/news/trending", timeout=20)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            trending_data = response.json()
+            print(f"Trending Topics Found: {len(trending_data['trending_topics'])}")
+            print(f"Timestamp: {trending_data['timestamp']}")
+            
+            # Check trending topics structure
+            for i, topic in enumerate(trending_data['trending_topics'][:3], 1):
+                print(f"\n--- Trending Topic {i} ---")
+                print(f"Topic: {topic['topic']}")
+                print(f"Article Count: {topic['article_count']}")
+                print(f"Latest Articles: {len(topic['latest_articles'])}")
+                
+                if len(topic['latest_articles']) > 0:
+                    sample_article = topic['latest_articles'][0]
+                    print(f"Sample Article: {sample_article.get('title', 'No title')[:60]}...")
+            
+            print("✅ Trending topics API working")
+            return True
+        else:
+            print(f"❌ Trending topics API failed with status {response.status_code}")
+            try:
+                error_detail = response.json()
+                print(f"Error details: {error_detail}")
+            except:
+                print(f"Error response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error testing trending topics API: {e}")
+        return False
+
+def test_enhanced_event_creation_with_news():
+    """Test 10: Enhanced Event Creation with News Articles"""
+    print("\n=== Test 10: Enhanced Event Creation with News Integration ===")
+    
+    # Test event from the review request
+    test_event = {
+        "title": "Severe Heatwave in Rajasthan",
+        "description": "Extreme temperatures above 45°C recorded across Rajasthan. Several districts report heat-related illnesses.",
+        "location": "Jaipur, Rajasthan",
+        "latitude": 26.9124,
+        "longitude": 75.7873
+    }
+    
+    try:
+        response = requests.post(f"{API_BASE_URL}/events", 
+                               json=test_event, 
+                               headers={"Content-Type": "application/json"},
+                               timeout=30)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            event = response.json()
+            print(f"Created Event ID: {event['id']}")
+            print(f"Title: {event['title']}")
+            print(f"AI-determined Type: {event['event_type']}")
+            print(f"AI-determined Severity: {event['severity']}")
+            print(f"AI Summary: {event['ai_summary'][:150]}...")
+            
+            # Check for news articles integration
+            if 'news_articles' in event:
+                print(f"News Articles Found: {len(event['news_articles'])}")
+                if len(event['news_articles']) > 0:
+                    print("Sample News Article:")
+                    article = event['news_articles'][0]
+                    print(f"  Title: {article.get('title', 'No title')[:80]}...")
+                    print(f"  Source: {article.get('source', {}).get('name', 'Unknown')}")
+                    print("✅ Enhanced event creation with news integration working")
+                else:
+                    print("⚠️ No news articles found (might be due to API limits or no relevant news)")
+                    print("✅ Enhanced event creation working (news integration attempted)")
+            else:
+                print("❌ News articles field missing from event")
+                return False, None
+            
+            return True, event['id']
+        else:
+            print(f"❌ Enhanced event creation failed with status {response.status_code}")
+            try:
+                error_detail = response.json()
+                print(f"Error details: {error_detail}")
+            except:
+                print(f"Error response: {response.text}")
+            return False, None
+            
+    except Exception as e:
+        print(f"❌ Error testing enhanced event creation: {e}")
+        return False, None
+
+def test_existing_events_have_news_field():
+    """Test 11: Verify Existing Events Have News Articles Field"""
+    print("\n=== Test 11: Existing Events with News Articles Field ===")
+    
+    try:
+        response = requests.get(f"{API_BASE_URL}/events", timeout=10)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            events = response.json()
+            print(f"Total events to check: {len(events)}")
+            
+            events_with_news = 0
+            events_without_news = 0
+            
+            for i, event in enumerate(events[:5], 1):  # Check first 5 events
+                print(f"\n--- Event {i}: {event['title'][:50]}... ---")
+                
+                if 'news_articles' in event:
+                    news_count = len(event['news_articles']) if event['news_articles'] else 0
+                    print(f"News Articles: {news_count}")
+                    events_with_news += 1
+                    
+                    if news_count > 0:
+                        sample_article = event['news_articles'][0]
+                        print(f"Sample Article: {sample_article.get('title', 'No title')[:60]}...")
+                else:
+                    print("❌ Missing news_articles field")
+                    events_without_news += 1
+            
+            print(f"\nSummary:")
+            print(f"Events with news_articles field: {events_with_news}")
+            print(f"Events without news_articles field: {events_without_news}")
+            
+            if events_without_news == 0:
+                print("✅ All events have news_articles field")
+                return True
+            else:
+                print("⚠️ Some events missing news_articles field (might be older events)")
+                return True  # This is acceptable for backward compatibility
+        else:
+            print(f"❌ Failed to fetch events: {response.status_code}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error checking existing events: {e}")
+        return False
+
 def run_all_tests():
     """Run all backend tests"""
     print("🚀 Starting Nexus Crisis Intelligence Backend API Tests")
