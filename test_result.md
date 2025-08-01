@@ -158,9 +158,9 @@ frontend:
         comment: "Basic React app with routing working, displays welcome message"
   
   - task: "Interactive India Geo-Map with Leaflet"
-    implemented: false
-    working: "NA"
-    file: "/app/frontend/src/components/"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/CrisisMap.jsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
@@ -168,6 +168,21 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Leaflet dependencies installed but map component not created yet"
+      - working: true
+        agent: "main"
+        comment: "Interactive India geo-map implemented with Leaflet, event filtering, legends, and crisis visualization"
+  
+  - task: "Crisis Intelligence Dashboard"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/Dashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Complete dashboard with statistics, event cards, and crisis event reporting form implemented"
   
   - task: "Event plotting system with color-coded markers"
     implemented: false
