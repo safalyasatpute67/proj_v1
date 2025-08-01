@@ -150,6 +150,30 @@ backend:
         agent: "testing"
         comment: "TESTED: Crisis event detection and analysis API is fully implemented and working. All endpoints tested: POST /api/events (creates events with AI analysis), GET /api/events (retrieves all events), GET /api/events/{id} (retrieves specific event), POST /api/analyze (standalone text analysis). AI analysis includes event_type, severity, summary, and recommendations. NewsAPI integration working - events now include news_articles field with relevant news context."
 
+  - task: "NewsAPI integration for real-time crisis news"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: NewsAPI integration fully implemented and working. Fixed country parameter issue in /everything endpoint. All NewsAPI endpoints tested: GET /api/news/crisis (crisis news search with query, days, limit parameters), GET /api/news/trending (trending crisis topics), Enhanced event creation with automatic news article fetching. NewsAPI key working, returning real news articles. All 11 comprehensive backend tests passed including 4 new NewsAPI integration tests."
+
+  - task: "Enhanced event creation with news context"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED: Enhanced event creation working perfectly. When creating new events via POST /api/events, system now automatically: 1) Performs AI analysis for event_type, severity, summary, recommendations, 2) Fetches relevant news articles based on event type and location, 3) Stores events with news_articles field containing up to 3 relevant articles. Tested with sample event 'Severe Heatwave in Rajasthan' - all functionality working. All existing events now have news_articles field for backward compatibility."
+
 frontend:
   - task: "Basic React app setup"
     implemented: true
